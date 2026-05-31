@@ -21,14 +21,14 @@ npm install
 npm start          # dev server em http://localhost:3000
 ```
 
-As rotas usam o prefixo `/calculadora`; a raiz (`/`) redireciona para lá.
+A calculadora fica na raiz do site.
 
 | Rota | Tela |
 |------|------|
-| `/calculadora` | Formulário de simulação |
-| `/calculadora/resultados` | Comparação de cenários + customização + PDF |
-| `/calculadora/resultados/incc` | Simulação de correção INCC |
-| `/calculadora/relatorio` | Relatório público compartilhado (`?s=<id>`) |
+| `/` | Formulário de simulação |
+| `/resultados` | Comparação de cenários + customização + PDF |
+| `/resultados/incc` | Simulação de correção INCC |
+| `/relatorio` | Relatório público compartilhado (`?s=<id>`) |
 
 > O recurso de compartilhamento (`/api/share/*`) depende das Netlify Functions.
 > Para testá-lo localmente, use `netlify dev` em vez de `npm start`.

@@ -12,8 +12,8 @@ import SharedReport from './components/SharedReport';
  *
  * Aplicação dedicada apenas à calculadora de financiamento imobiliário.
  * Sem autenticação, AppLayout ou NavBar — deploy independente no Netlify.
- * As rotas mantêm o prefixo /calculadora por compatibilidade com os
- * navigate() hardcoded nos componentes. A raiz (/) redireciona para /calculadora.
+ * A calculadora fica na raiz (/). Demais telas: /resultados,
+ * /resultados/incc e /relatorio (relatório público compartilhado).
  */
 
 function CalculatorLayout({ children }) {
@@ -30,17 +30,14 @@ function AppContent() {
   return (
     <CalculatorLayout>
       <Routes>
-        {/* Raiz redireciona para /calculadora */}
-        <Route path="/" element={<Navigate to="/calculadora" replace />} />
+        {/* Calculadora na raiz */}
+        <Route path="/" element={<MortgageCalculator />} />
+        <Route path="/resultados" element={<CalculatorResults />} />
+        <Route path="/resultados/incc" element={<INCCResults />} />
+        <Route path="/relatorio" element={<SharedReport />} />
 
-        {/* Rotas da calculadora (mesmo path do app principal) */}
-        <Route path="/calculadora" element={<MortgageCalculator />} />
-        <Route path="/calculadora/resultados" element={<CalculatorResults />} />
-        <Route path="/calculadora/resultados/incc" element={<INCCResults />} />
-        <Route path="/calculadora/relatorio" element={<SharedReport />} />
-
-        {/* Qualquer outra rota redireciona para a calculadora */}
-        <Route path="*" element={<Navigate to="/calculadora" replace />} />
+        {/* Qualquer outra rota volta para a calculadora */}
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </CalculatorLayout>
   );

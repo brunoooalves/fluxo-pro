@@ -216,7 +216,7 @@ export async function generateSignedShareUrl(shareData) {
   }
 
   const origin = window.location.origin;
-  return `${origin}/calculadora/relatorio?s=${id}`;
+  return `${origin}/relatorio?s=${id}`;
 }
 
 export async function verifyShareId(shareId) {

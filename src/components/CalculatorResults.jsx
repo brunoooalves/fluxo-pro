@@ -12,7 +12,6 @@ import { classifyScenarios, generateProsCons } from './shared-report/scenarioUti
 export default function CalculatorResults() {
   const location = useLocation();
   const navigate = useNavigate();
-  const basePath = location.pathname.startsWith('/test/') ? '/test/calculadora' : '/calculadora';
   const { resultados: initialResultados, calculatorInputs } = location.state || {};
 
   const [resultados] = useState(initialResultados);
@@ -327,12 +326,12 @@ export default function CalculatorResults() {
 
   // If no data, redirect back
   if (!resultados || !calculatorInputs) {
-    navigate(basePath);
+    navigate('/');
     return null;
   }
 
   const handleInccButtonClick = (opcao) => {
-    navigate(`${basePath}/resultados/incc`, {
+    navigate('/resultados/incc', {
       state: {
         opcao,
         valorImovel: calculatorInputs.valorImovel,
@@ -2037,7 +2036,7 @@ export default function CalculatorResults() {
         {/* Breadcrumb */}
         <div className="mb-2">
           <Breadcrumb items={[
-            { label: 'Calculadora', href: '/calculadora' },
+            { label: 'Calculadora', href: '/' },
             { label: 'Resultados' },
           ]} />
         </div>
@@ -2267,7 +2266,7 @@ export default function CalculatorResults() {
       <div className="fixed bottom-0 left-0 right-0 z-40 p-4 bg-gradient-to-t from-white via-white/95 to-transparent pointer-events-none">
         <div className="max-w-6xl mx-auto pointer-events-auto flex gap-3">
           <button
-            onClick={() => navigate(basePath, { state: { calculatorInputs } })}
+            onClick={() => navigate('/', { state: { calculatorInputs } })}
             className="flex items-center justify-center gap-2 py-3.5 px-5 rounded-xl shadow-lg font-semibold text-sm bg-white border border-surface-border text-ink-base hover:bg-surface-hover active:scale-95 transition-all duration-200"
           >
             <ArrowLeft size={18} />

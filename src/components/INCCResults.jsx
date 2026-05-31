@@ -11,7 +11,6 @@ const ANOS_INCC_COMPLETOS = ANOS_INCC.filter(y => INCC_DATA[y].every(v => v !== 
 export default function INCCResults() {
   const location = useLocation();
   const navigate = useNavigate();
-  const basePath = location.pathname.startsWith('/test/') ? '/test/calculadora' : '/calculadora';
   const { opcao, valorImovel, resultados, calculatorInputs } = location.state || {};
 
   const [selectedInccYear, setSelectedInccYear] = useState('media');
@@ -133,7 +132,7 @@ export default function INCCResults() {
       const resultado = gerarSimulacaoINCC(selectedInccYear);
       setSimulacaoINCC(resultado);
     } else {
-      navigate(basePath);
+      navigate('/');
     }
   }, [selectedInccYear, opcao, valorImovel, navigate]);
 
@@ -207,8 +206,8 @@ export default function INCCResults() {
         {/* Breadcrumb */}
         <div className="mb-2">
           <Breadcrumb items={[
-            { label: 'Calculadora', href: '/calculadora' },
-            { label: 'Resultados', href: '/calculadora/resultados' },
+            { label: 'Calculadora', href: '/' },
+            { label: 'Resultados', href: '/resultados' },
             { label: 'INCC' },
           ]} />
         </div>
@@ -228,7 +227,7 @@ export default function INCCResults() {
             <Button
               variant="secondary"
               icon={<ArrowLeft size={16} />}
-              onClick={() => navigate(`${basePath}/resultados`, {
+              onClick={() => navigate('/resultados', {
                 state: { resultados, calculatorInputs }
               })}
             >

@@ -100,7 +100,6 @@ function HelpPopover({ text, label = 'Ajuda da seção' }) {
 export default function MortgageCalculator() {
   const navigate = useNavigate();
   const location = useLocation();
-  const basePath = location.pathname.startsWith('/test/') ? '/test/calculadora' : '/calculadora';
   const inputsAnteriores = location.state?.calculatorInputs;
 
   const [valorImovel, setValorImovel] = useState(inputsAnteriores?.valorImovel || '');
@@ -811,7 +810,7 @@ export default function MortgageCalculator() {
       const percIC0 = parseFloat(firstCombo.percIntercaladas) || 0;
       const soma0 = percEC0 + percPC0 + percIC0;
 
-      navigate(`${basePath}/resultados`, {
+      navigate('/resultados', {
         state: {
           resultados: {
             mesesAteEntrega,
@@ -1050,7 +1049,7 @@ export default function MortgageCalculator() {
       valorRestante = valorTotalAteEntrega - valorTotalMensais - valorTotalIntercaladas;
     }
 
-    navigate(`${basePath}/resultados`, {
+    navigate('/resultados', {
       state: {
         resultados: {
           mesesAteEntrega,
