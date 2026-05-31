@@ -6,14 +6,21 @@ import MortgageCalculator from './components/MortgageCalculator';
 import CalculatorResults from './components/CalculatorResults';
 import INCCResults from './components/INCCResults';
 import SharedReport from './components/SharedReport';
+import Login from './components/auth/Login';
+import SignUp from './components/auth/SignUp';
+import Assinar from './components/Assinar';
+import RequireAuth from './components/auth/RequireAuth';
+import { AuthProvider } from './context/AuthContext';
 
 /**
  * App.js - Fluxo Pro (calculadora standalone)
  *
- * Aplicação dedicada apenas à calculadora de financiamento imobiliário.
- * Sem autenticação, AppLayout ou NavBar — deploy independente no Netlify.
- * A calculadora fica na raiz (/). Demais telas: /resultados,
- * /resultados/incc e /relatorio (relatório público compartilhado).
+ * A calculadora fica na raiz (/) e exige login (RequireAuth). O relatório
+ * compartilhado (/relatorio) é público. Login/cadastro em /login e /cadastro.
+ *
+ * Gating por assinatura: ainda NÃO aplicado. Quando o checkout do gateway
+ * existir, envolver as rotas protegidas também com <RequireSubscription>.
+ * Enquanto o Supabase não estiver configurado (sem env), o app fica aberto.
  */
 
 function CalculatorLayout({ children }) {
@@ -28,18 +35,21 @@ function CalculatorLayout({ children }) {
 
 function AppContent() {
   return (
-    <CalculatorLayout>
-      <Routes>
-        {/* Calculadora na raiz */}
-        <Route path="/" element={<MortgageCalculator />} />
-        <Route path="/resultados" element={<CalculatorResults />} />
-        <Route path="/resultados/incc" element={<INCCResults />} />
-        <Route path="/relatorio" element={<SharedReport />} />
+    <Routes>
+      {/* Públicas */}
+      <Route path="/login" element={<Login />} />
+      <Route path="/cadastro" element={<SignUp />} />
+      <Route path="/relatorio" element={<SharedReport />} />
 
-        {/* Qualquer outra rota volta para a calculadora */}
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </CalculatorLayout>
+      {/* Exigem login */}
+      <Route path="/assinar" element={<RequireAuth><Assinar /></RequireAuth>} />
+      <Route path="/" element={<RequireAuth><CalculatorLayout><MortgageCalculator /></CalculatorLayout></RequireAuth>} />
+      <Route path="/resultados" element={<RequireAuth><CalculatorLayout><CalculatorResults /></CalculatorLayout></RequireAuth>} />
+      <Route path="/resultados/incc" element={<RequireAuth><CalculatorLayout><INCCResults /></CalculatorLayout></RequireAuth>} />
+
+      {/* Qualquer outra rota volta para a calculadora */}
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   );
 }
 
@@ -47,8 +57,10 @@ function App() {
   return (
     <ErrorBoundary>
       <Router>
-        <AppContent />
-        <CookieBanner />
+        <AuthProvider>
+          <AppContent />
+          <CookieBanner />
+        </AuthProvider>
       </Router>
     </ErrorBoundary>
   );

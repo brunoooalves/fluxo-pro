@@ -4,6 +4,7 @@
   "private": true,
   "description": "Fluxo Pro - Calculadora de financiamento imobiliario na planta",
   "dependencies": {
+    "@supabase/supabase-js": "^2.106.2",
     "jspdf": "^3.0.4",
     "lucide-react": "^0.303.0",
     "qrcode.react": "^4.2.0",
