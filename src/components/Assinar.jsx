@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Check, Calculator, LogOut } from 'lucide-react';
 import Button from './ui/Button';
 import Card from './ui/Card';
-import { supabase } from '../lib/supabaseClient';
+import { supabase, isSupabaseConfigured } from '../lib/supabaseClient';
 import { useAuth } from '../context/AuthContext';
 
 /**
@@ -43,19 +43,40 @@ function formatPrice(cents, interval) {
   return { value: `R$ ${value}`, suffix: interval === 'year' ? '/ano' : '/mês' };
 }
 
+// FALLBACK TEMPORÁRIO: planos fixos para preview sem Supabase configurado.
+// Remover quando as chaves estiverem definidas e o banco for a fonte única.
+const FALLBACK_PLANS = [
+  { id: 'fb-basico', code: 'basico_mensal', name: 'Básico', price_cents: 2990, interval: 'month',
+    features: { pdf: true, compartilhamento: true, max_imoveis: 5, simulacoes_mes: 50, fipezap: false, white_label: false } },
+  { id: 'fb-pro', code: 'pro_mensal', name: 'Pro', price_cents: 3990, interval: 'month',
+    features: { pdf: true, compartilhamento: true, max_imoveis: null, simulacoes_mes: null, fipezap: true, white_label: true } },
+  { id: 'fb-pro-anual', code: 'pro_anual', name: 'Pro Anual', price_cents: 39900, interval: 'year',
+    features: { pdf: true, compartilhamento: true, max_imoveis: null, simulacoes_mes: null, fipezap: true, white_label: true } },
+];
+
 export default function Assinar() {
   const { user, signOut } = useAuth();
   const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [usingFallback, setUsingFallback] = useState(false);
 
   useEffect(() => {
+    // Sem Supabase configurado → mostra os planos de exemplo (prévia).
+    if (!isSupabaseConfigured) {
+      setPlans(FALLBACK_PLANS);
+      setUsingFallback(true);
+      setLoading(false);
+      return;
+    }
     supabase
       .from('plans')
       .select('*')
       .eq('is_active', true)
       .order('sort_order')
       .then(({ data }) => {
-        setPlans(data || []);
+        const hasData = data && data.length > 0;
+        setPlans(hasData ? data : FALLBACK_PLANS);
+        setUsingFallback(!hasData);
         setLoading(false);
       });
   }, []);
@@ -80,6 +101,11 @@ export default function Assinar() {
         <div className="text-center mb-10">
           <h1 className="text-3xl font-bold text-ink-base">Escolha seu plano</h1>
           <p className="text-ink-muted mt-2">Assine para usar a calculadora sem limites.</p>
+          {usingFallback && (
+            <p className="mt-3 inline-block rounded-full bg-status-warning-bg px-3 py-1 text-xs text-status-warning-text">
+              Prévia — planos de exemplo (Supabase ainda não conectado)
+            </p>
+          )}
         </div>
 
         {loading ? (
