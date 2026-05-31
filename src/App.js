@@ -9,18 +9,20 @@ import SharedReport from './components/SharedReport';
 import Login from './components/auth/Login';
 import SignUp from './components/auth/SignUp';
 import Assinar from './components/Assinar';
+import Landing from './components/landing/Landing';
 import RequireAuth from './components/auth/RequireAuth';
 import AccountMenu from './components/auth/AccountMenu';
 import { AuthProvider, useAuth } from './context/AuthContext';
 
 /**
- * App.js - Fluxo Pro (calculadora standalone)
+ * App.js - Fluxo Pro
  *
- * A calculadora fica na raiz (/) e exige login (RequireAuth). O relatório
- * compartilhado (/relatorio) é público. Login/cadastro em /login e /cadastro.
+ * A raiz (/) é a landing pública (apresentação + planos + login via modal).
+ * A calculadora fica em /calculadora e exige login (RequireAuth).
+ * /relatorio e /assinar são públicas.
  *
  * Gating por assinatura: ainda NÃO aplicado. Quando o checkout do gateway
- * existir, envolver as rotas protegidas também com <RequireSubscription>.
+ * existir, envolver as rotas da calculadora também com <RequireSubscription>.
  * Enquanto o Supabase não estiver configurado (sem env), o app fica aberto.
  */
 
@@ -44,17 +46,18 @@ function AppContent() {
   return (
     <Routes>
       {/* Públicas */}
+      <Route path="/" element={<Landing />} />
       <Route path="/login" element={<Login />} />
       <Route path="/cadastro" element={<SignUp />} />
       <Route path="/relatorio" element={<SharedReport />} />
       <Route path="/assinar" element={<Assinar />} />
 
-      {/* Exigem login */}
-      <Route path="/" element={<RequireAuth><CalculatorLayout><MortgageCalculator /></CalculatorLayout></RequireAuth>} />
-      <Route path="/resultados" element={<RequireAuth><CalculatorLayout><CalculatorResults /></CalculatorLayout></RequireAuth>} />
-      <Route path="/resultados/incc" element={<RequireAuth><CalculatorLayout><INCCResults /></CalculatorLayout></RequireAuth>} />
+      {/* Calculadora (exige login) */}
+      <Route path="/calculadora" element={<RequireAuth><CalculatorLayout><MortgageCalculator /></CalculatorLayout></RequireAuth>} />
+      <Route path="/calculadora/resultados" element={<RequireAuth><CalculatorLayout><CalculatorResults /></CalculatorLayout></RequireAuth>} />
+      <Route path="/calculadora/resultados/incc" element={<RequireAuth><CalculatorLayout><INCCResults /></CalculatorLayout></RequireAuth>} />
 
-      {/* Qualquer outra rota volta para a calculadora */}
+      {/* Qualquer outra rota volta para a landing */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

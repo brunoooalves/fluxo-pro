@@ -132,7 +132,7 @@ export default function INCCResults() {
       const resultado = gerarSimulacaoINCC(selectedInccYear);
       setSimulacaoINCC(resultado);
     } else {
-      navigate('/');
+      navigate('/calculadora');
     }
   }, [selectedInccYear, opcao, valorImovel, navigate]);
 
@@ -206,8 +206,8 @@ export default function INCCResults() {
         {/* Breadcrumb */}
         <div className="mb-2">
           <Breadcrumb items={[
-            { label: 'Calculadora', href: '/' },
-            { label: 'Resultados', href: '/resultados' },
+            { label: 'Calculadora', href: '/calculadora' },
+            { label: 'Resultados', href: '/calculadora/resultados' },
             { label: 'INCC' },
           ]} />
         </div>
@@ -227,7 +227,7 @@ export default function INCCResults() {
             <Button
               variant="secondary"
               icon={<ArrowLeft size={16} />}
-              onClick={() => navigate('/resultados', {
+              onClick={() => navigate('/calculadora/resultados', {
                 state: { resultados, calculatorInputs }
               })}
             >

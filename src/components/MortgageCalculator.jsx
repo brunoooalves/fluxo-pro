@@ -810,7 +810,7 @@ export default function MortgageCalculator() {
       const percIC0 = parseFloat(firstCombo.percIntercaladas) || 0;
       const soma0 = percEC0 + percPC0 + percIC0;
 
-      navigate('/resultados', {
+      navigate('/calculadora/resultados', {
         state: {
           resultados: {
             mesesAteEntrega,
@@ -1049,7 +1049,7 @@ export default function MortgageCalculator() {
       valorRestante = valorTotalAteEntrega - valorTotalMensais - valorTotalIntercaladas;
     }
 
-    navigate('/resultados', {
+    navigate('/calculadora/resultados', {
       state: {
         resultados: {
           mesesAteEntrega,
