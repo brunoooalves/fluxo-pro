@@ -1,0 +1,17 @@
+[build]
+  command = "npm run build"
+  publish = "build"
+  functions = "netlify/functions"
+
+[build.environment]
+  NODE_VERSION = "20"
+  GENERATE_SOURCEMAP = "false"
+
+# Share API calls are handled by Netlify Functions v2
+# (paths are declared in share-create.js and share-get.js via `export const config`)
+
+# SPA redirect - all routes fall back to index.html
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
