@@ -19,7 +19,7 @@ export default function AccountMenu() {
 
   const handleSignOut = async () => {
     await signOut();
-    navigate('/login', { replace: true });
+    navigate('/', { replace: true });
   };
 
   return (

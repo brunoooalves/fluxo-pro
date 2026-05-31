@@ -24,12 +24,78 @@ const FEATURES = [
   { icon: Share2, title: 'Link compartilhável', desc: 'Compartilhe a simulação por um link com a sua marca.' },
 ];
 
-function ProductImage({ label, className = '' }) {
+function ProductImage({ src, alt, label = 'Imagem do produto', className = '' }) {
+  const [errored, setErrored] = useState(false);
+
+  // Mostra a imagem real; se o arquivo ainda não existir, cai no placeholder.
+  if (src && !errored) {
+    return (
+      <img
+        src={src}
+        alt={alt || label}
+        loading="lazy"
+        onError={() => setErrored(true)}
+        className={`w-full h-auto rounded-2xl border border-surface-border shadow-sm ${className}`}
+      />
+    );
+  }
+
   return (
-    <div className={`relative rounded-2xl border border-surface-border bg-gradient-to-br from-brand-50 to-surface-muted overflow-hidden ${className}`}>
+    <div className={`relative rounded-2xl border border-surface-border bg-gradient-to-br from-brand-50 to-surface-muted overflow-hidden min-h-[18rem] ${className}`}>
       <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-brand-300">
         <Calculator size={40} />
         <span className="text-xs text-ink-faint">{label}</span>
+      </div>
+    </div>
+  );
+}
+
+// Blocos explicativos (texto + screenshot), alternando os lados.
+const SHOWCASE = [
+  {
+    eyebrow: 'Passo 1 · Simulação',
+    title: 'Configure a simulação em segundos',
+    desc: 'Informe o valor do imóvel, a data de entrega e a metragem. O Fluxo Pro já calcula o prazo e o preço por m² automaticamente.',
+    bullets: ['Valor do imóvel e data de entrega', 'Metragem com preço por m²', 'Localização para análise de mercado'],
+    src: '/images/landing-simulacao.png',
+    alt: 'Tela de simulação: valor do imóvel, data de entrega e metragem',
+  },
+  {
+    eyebrow: 'Passo 2 · Condições de pagamento',
+    title: 'Distribua o pagamento do seu jeito',
+    desc: 'Defina entrada, parcelas mensais e intercaladas — no modo escalonável ou por porcentagens — e veja a distribuição do pagamento na hora.',
+    bullets: ['Entrada, mensais e intercaladas', 'Modo escalonável ou por porcentagens', 'Barra de distribuição em tempo real'],
+    src: '/images/landing-condicoes.png',
+    alt: 'Tela de condições de pagamento com a distribuição do pagamento',
+  },
+  {
+    eyebrow: 'Resultado',
+    title: 'Compare dezenas de cenários de uma vez',
+    desc: 'Receba vários cenários de entrada lado a lado, ajuste cada valor com um clique e escolha o que faz mais sentido para o seu cliente.',
+    bullets: ['Cenários de entrada automáticos', 'Ajuste fino de cada valor', 'Compare e leve para a análise de INCC'],
+    src: '/images/landing-cenarios.png',
+    alt: 'Grade de cenários de pagamento para comparar',
+  },
+];
+
+function ShowcaseRow({ item, reverse }) {
+  return (
+    <div className="grid md:grid-cols-2 gap-8 md:gap-12 items-center">
+      <div className={reverse ? 'md:order-2' : ''}>
+        <span className="text-sm font-semibold text-brand-600">{item.eyebrow}</span>
+        <h3 className="text-2xl sm:text-3xl font-bold mt-2 tracking-tight">{item.title}</h3>
+        <p className="text-ink-muted mt-3 leading-relaxed">{item.desc}</p>
+        <ul className="mt-5 space-y-2">
+          {item.bullets.map((b) => (
+            <li key={b} className="flex items-start gap-2 text-sm text-ink-muted">
+              <Check size={16} className="text-status-success flex-shrink-0 mt-0.5" />
+              <span>{b}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+      <div className={reverse ? 'md:order-1' : ''}>
+        <ProductImage src={item.src} alt={item.alt} label={item.title} />
       </div>
     </div>
   );
@@ -84,7 +150,7 @@ export default function Landing() {
           </div>
           <p className="mt-3 text-sm text-ink-faint">A partir de R$ 29,90/mês · cancele quando quiser.</p>
         </div>
-        <ProductImage label="Imagem do produto (substituir)" className="h-72 md:h-96" />
+        <ProductImage src="/images/landing-resultados.png" alt="Resultados da simulação com análise de valorização (FipeZap)" label="Imagem do produto (substituir)" />
       </section>
 
       {/* RECURSOS */}
@@ -105,8 +171,14 @@ export default function Landing() {
               </div>
             ))}
           </div>
-          <ProductImage label="Screenshot da calculadora (substituir)" className="h-80 mt-12" />
         </div>
+      </section>
+
+      {/* COMO FUNCIONA — blocos alternados (texto + screenshot) */}
+      <section className="max-w-6xl mx-auto px-4 py-16 space-y-16 md:space-y-24">
+        {SHOWCASE.map((item, i) => (
+          <ShowcaseRow key={item.title} item={item} reverse={i % 2 === 1} />
+        ))}
       </section>
 
       {/* PLANOS */}

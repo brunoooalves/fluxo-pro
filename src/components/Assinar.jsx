@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { LogOut } from 'lucide-react';
 import Button from './ui/Button';
 import Logo from './Logo';
@@ -11,6 +12,12 @@ import { useAuth } from '../context/AuthContext';
  */
 export default function Assinar() {
   const { user, signOut } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/', { replace: true });
+  };
 
   return (
     <div className="min-h-screen bg-surface-base px-4 py-10">
@@ -18,7 +25,7 @@ export default function Assinar() {
         <header className="flex items-center justify-between mb-10">
           <Logo size="md" to="/" />
           {user && (
-            <Button variant="ghost" size="sm" icon={<LogOut size={14} />} onClick={() => signOut()}>
+            <Button variant="ghost" size="sm" icon={<LogOut size={14} />} onClick={handleSignOut}>
               Sair
             </Button>
           )}
