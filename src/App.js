@@ -40,9 +40,9 @@ function AppContent() {
       <Route path="/login" element={<Login />} />
       <Route path="/cadastro" element={<SignUp />} />
       <Route path="/relatorio" element={<SharedReport />} />
+      <Route path="/assinar" element={<Assinar />} />
 
       {/* Exigem login */}
-      <Route path="/assinar" element={<RequireAuth><Assinar /></RequireAuth>} />
       <Route path="/" element={<RequireAuth><CalculatorLayout><MortgageCalculator /></CalculatorLayout></RequireAuth>} />
       <Route path="/resultados" element={<RequireAuth><CalculatorLayout><CalculatorResults /></CalculatorLayout></RequireAuth>} />
       <Route path="/resultados/incc" element={<RequireAuth><CalculatorLayout><INCCResults /></CalculatorLayout></RequireAuth>} />
