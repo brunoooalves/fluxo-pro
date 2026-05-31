@@ -1,7 +1,7 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
-import { Calculator, LogOut } from 'lucide-react';
+import { LogOut } from 'lucide-react';
 import Button from './ui/Button';
+import Logo from './Logo';
 import PlansSection from './PlansSection';
 import { useAuth } from '../context/AuthContext';
 
@@ -16,12 +16,7 @@ export default function Assinar() {
     <div className="min-h-screen bg-surface-base px-4 py-10">
       <div className="max-w-5xl mx-auto">
         <header className="flex items-center justify-between mb-10">
-          <Link to="/" className="flex items-center gap-2">
-            <div className="w-9 h-9 rounded-xl bg-brand-500 text-white flex items-center justify-center">
-              <Calculator size={18} />
-            </div>
-            <span className="text-lg font-bold text-ink-base">Fluxo Pro</span>
-          </Link>
+          <Logo size="md" to="/" />
           {user && (
             <Button variant="ghost" size="sm" icon={<LogOut size={14} />} onClick={() => signOut()}>
               Sair

@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 import {
-  Calculator, TrendingUp, FileText, Share2, LineChart, ArrowRight, Check, LogOut,
+  Calculator, TrendingUp, FileText, Share2, LineChart, ArrowRight, Check,
 } from 'lucide-react';
 import Button from '../ui/Button';
+import Logo from '../Logo';
 import PlansSection from '../PlansSection';
 import LoginModal from '../auth/LoginModal';
 import { useAuth } from '../../context/AuthContext';
@@ -35,25 +36,23 @@ function ProductImage({ label, className = '' }) {
 }
 
 export default function Landing() {
-  const { user, signOut } = useAuth();
-  const navigate = useNavigate();
+  const { user, loading } = useAuth();
   const [authOpen, setAuthOpen] = useState(false);
   const [authMode, setAuthMode] = useState('login');
 
   const openAuth = (mode) => { setAuthMode(mode); setAuthOpen(true); };
   const scrollTo = (id) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
 
+  // A landing é para visitantes: quem já está logado vai direto à calculadora.
+  if (loading) return null;
+  if (user) return <Navigate to="/calculadora" replace />;
+
   return (
     <div className="min-h-screen bg-surface-base font-sans text-ink-base">
       {/* NAV */}
       <header className="sticky top-0 z-30 bg-surface-base/80 backdrop-blur border-b border-surface-border">
         <nav className="max-w-6xl mx-auto flex items-center justify-between px-4 py-3">
-          <div className="flex items-center gap-2">
-            <div className="w-9 h-9 rounded-xl bg-brand-500 text-white flex items-center justify-center">
-              <Calculator size={18} />
-            </div>
-            <span className="text-lg font-bold">Fluxo Pro</span>
-          </div>
+          <Logo size="md" to="/" />
 
           <div className="hidden md:flex items-center gap-6 text-sm text-ink-muted">
             <button onClick={() => scrollTo('recursos')} className="hover:text-ink-base">Recursos</button>
@@ -61,19 +60,8 @@ export default function Landing() {
           </div>
 
           <div className="flex items-center gap-2">
-            {user ? (
-              <>
-                <Button variant="ghost" size="sm" icon={<LogOut size={14} />} onClick={() => signOut()}>Sair</Button>
-                <Button variant="primary" size="sm" icon={<ArrowRight size={14} />} onClick={() => navigate('/calculadora')}>
-                  Abrir calculadora
-                </Button>
-              </>
-            ) : (
-              <>
-                <Button variant="ghost" size="sm" onClick={() => openAuth('login')}>Entrar</Button>
-                <Button variant="primary" size="sm" onClick={() => scrollTo('planos')}>Ver planos</Button>
-              </>
-            )}
+            <Button variant="ghost" size="sm" onClick={() => openAuth('login')}>Entrar</Button>
+            <Button variant="primary" size="sm" onClick={() => scrollTo('planos')}>Ver planos</Button>
           </div>
         </nav>
       </header>
@@ -136,10 +124,7 @@ export default function Landing() {
       {/* FOOTER */}
       <footer className="border-t border-surface-border">
         <div className="max-w-6xl mx-auto px-4 py-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-ink-muted">
-          <div className="flex items-center gap-2">
-            <Calculator size={16} className="text-brand-500" />
-            <span className="font-semibold text-ink-base">Fluxo Pro</span>
-          </div>
+          <Logo size="sm" />
           <div className="flex items-center gap-2 text-ink-faint">
             <Check size={14} className="text-status-success" />
             <span>Feito para corretores de imóveis</span>

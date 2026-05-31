@@ -1,6 +1,6 @@
 import React from 'react';
-import { Calculator } from 'lucide-react';
 import Card from '../ui/Card';
+import Logo from '../Logo';
 
 /**
  * Layout compartilhado das telas de autenticação (login/cadastro).
@@ -9,11 +9,8 @@ export default function AuthShell({ title, subtitle, children, footer }) {
   return (
     <div className="min-h-screen flex items-center justify-center bg-surface-base px-4 py-10">
       <div className="w-full max-w-md">
-        <div className="flex items-center justify-center gap-2 mb-6">
-          <div className="w-10 h-10 rounded-xl bg-brand-500 text-white flex items-center justify-center">
-            <Calculator size={20} />
-          </div>
-          <span className="text-xl font-bold text-ink-base">Fluxo Pro</span>
+        <div className="flex justify-center mb-6">
+          <Logo size="lg" to="/" />
         </div>
 
         <Card padding="lg">

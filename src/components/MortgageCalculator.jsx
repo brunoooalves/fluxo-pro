@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { Calculator, X, AlertCircle, AlertTriangle, ChevronLeft, ChevronRight, Sparkles, RotateCcw, Plus, HelpCircle, TrendingUp, Check, Zap } from 'lucide-react';
 import { useFipeZap } from '../hooks/useFipeZap';
 import { Breadcrumb, Button, Card, Modal } from './ui';
-import CalculatorHelpModal from './CalculatorHelpModal';
+import Logo from './Logo';
 
 const MONTH_LABELS = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
 
@@ -184,7 +184,6 @@ export default function MortgageCalculator() {
       imovel: { nome: '', localizacao: '', metragem: '', cidade: '', estado: '', informacoesGerais: '' }
     };
   });
-  const [helpModalOpen, setHelpModalOpen] = useState(false);
   const [customizacaoAberta, setCustomizacaoAberta] = useState(false);
   const [modoMensal, setModoMensal] = useState(
     // Default 'definir' — se retomando simulação anterior onde valorMensal era 0, respeita 'auto'
@@ -1391,25 +1390,10 @@ export default function MortgageCalculator() {
   return (
     <div className="min-h-screen bg-surface-base">
       <div className="max-w-3xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
-        {/* Guia completo — topo da página */}
-        <button
-          type="button"
-          onClick={() => setHelpModalOpen(true)}
-          className="inline-flex items-center gap-1 text-sm text-brand-500 hover:text-brand-600 font-medium transition-colors mb-2"
-        >
-          <HelpCircle size={14} />
-          Guia completo
-        </button>
-
-        {/* Page Header */}
+        {/* Logo */}
         <div className="mb-5 sm:mb-8">
-          <h1 className="text-2xl sm:text-3xl font-bold text-ink-base tracking-tight uppercase">
-            FLUXO PRO
-          </h1>
+          <Logo size="lg" to="/" />
         </div>
-
-        {/* Modal de Ajuda */}
-        <CalculatorHelpModal open={helpModalOpen} onClose={() => setHelpModalOpen(false)} />
 
         {/* Breadcrumb + Gerar valores — mesma linha, botão ao final */}
         <div className="mb-3 flex items-center justify-between gap-3 flex-wrap">
