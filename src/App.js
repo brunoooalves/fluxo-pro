@@ -10,7 +10,8 @@ import Login from './components/auth/Login';
 import SignUp from './components/auth/SignUp';
 import Assinar from './components/Assinar';
 import RequireAuth from './components/auth/RequireAuth';
-import { AuthProvider } from './context/AuthContext';
+import AccountMenu from './components/auth/AccountMenu';
+import { AuthProvider, useAuth } from './context/AuthContext';
 
 /**
  * App.js - Fluxo Pro (calculadora standalone)
@@ -24,8 +25,14 @@ import { AuthProvider } from './context/AuthContext';
  */
 
 function CalculatorLayout({ children }) {
+  const { user, isConfigured } = useAuth();
   return (
     <div className="min-h-screen bg-surface-base font-sans text-ink-base">
+      {isConfigured && user && (
+        <div className="flex justify-end px-4 pt-3">
+          <AccountMenu />
+        </div>
+      )}
       <main className="pb-8">
         {children}
       </main>

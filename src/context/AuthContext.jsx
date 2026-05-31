@@ -54,6 +54,15 @@ export function AuthProvider({ children }) {
 
   const signOut = useCallback(() => supabase.auth.signOut(), []);
 
+  // Exclusão de conta (LGPD). Chama a função SECURITY DEFINER no banco, que
+  // apaga apenas a própria conta (auth.uid()); o cascade limpa profiles,
+  // subscriptions e payments. Em seguida encerra a sessão.
+  const deleteAccount = useCallback(async () => {
+    const { error } = await supabase.rpc('delete_own_account');
+    if (error) throw error;
+    await supabase.auth.signOut();
+  }, []);
+
   const value = {
     session,
     user,
@@ -62,6 +71,7 @@ export function AuthProvider({ children }) {
     signUp,
     signIn,
     signOut,
+    deleteAccount,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
