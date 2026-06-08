@@ -119,6 +119,30 @@ export default function MarketAnalysisSection({
             </div>
             <div className="p-5 space-y-6">
 
+              {/* Preço médio por m² — cidade e bairro */}
+              {fipezap.price != null && (
+                <div className="bg-gray-50 rounded-xl p-4 ring-1 ring-gray-100">
+                  <p className="text-sm font-semibold text-gray-900 mb-3">Preço médio (R$/m²)</p>
+                  <div className={`grid ${fipezap.neighborhood && fipezap.neighborhoodPrice ? 'grid-cols-2' : 'grid-cols-1'} gap-3`}>
+                    {fipezap.neighborhood && fipezap.neighborhoodPrice && (
+                      <div className="bg-white rounded-lg p-3 text-center ring-1 ring-emerald-200">
+                        <p className="text-xs text-gray-500 mb-1">Bairro {fipezap.neighborhood}</p>
+                        <p className="text-lg font-bold text-emerald-700">
+                          R$ {Math.round(fipezap.neighborhoodPrice).toLocaleString('pt-BR')}<span className="text-xs font-normal text-gray-400">/m²</span>
+                        </p>
+                        {fipezap.neighborhoodVar && <p className="text-xs text-gray-400">{fipezap.neighborhoodVar} no mês</p>}
+                      </div>
+                    )}
+                    <div className="bg-white rounded-lg p-3 text-center ring-1 ring-gray-200">
+                      <p className="text-xs text-gray-500 mb-1">Média de {fipezap.cityName}</p>
+                      <p className="text-lg font-bold text-gray-800">
+                        R$ {Math.round(fipezap.price).toLocaleString('pt-BR')}<span className="text-xs font-normal text-gray-400">/m²</span>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* 1. Valorização vs INCC - conditional, before projection for context */}
               {fipezap.annualizedRate != null && (
                 <div className="bg-emerald-50 rounded-xl p-4 ring-1 ring-emerald-100">

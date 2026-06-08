@@ -204,8 +204,11 @@ export default function MortgageCalculator() {
     matched: fipezapMatched,
     currentPrice: fipezapPrice,
     suggestions: fipezapSuggestions,
+    neighborhoods,
+    selectedNeighborhood,
+    setSelectedNeighborhood,
     fipezapMatch,
-  } = useFipeZap(reportInfo.imovel.cidade, reportInfo.imovel.estado, dataEntrega, valorImovel);
+  } = useFipeZap(reportInfo.imovel.cidade, reportInfo.imovel.estado, dataEntrega, valorImovel, inputsAnteriores?.selectedNeighborhood || '');
 
   const [showCitySuggestions, setShowCitySuggestions] = useState(false);
 
@@ -841,6 +844,7 @@ export default function MortgageCalculator() {
             tipoIntercaladaCustom,
             mesclarEscalonavel,
             reportInfo,
+            selectedNeighborhood,
             fipezapMatch
           }
         }
@@ -1492,6 +1496,19 @@ export default function MortgageCalculator() {
                 )}
               </div>
             </div>
+
+            {fipezapMatched && neighborhoods.length > 0 && (
+              <select
+                value={selectedNeighborhood}
+                onChange={(e) => setSelectedNeighborhood(e.target.value)}
+                className="w-full mt-3 px-3 py-2.5 border border-surface-border rounded-lg focus:ring-2 focus:ring-brand-300 focus:border-brand-400 transition-colors"
+              >
+                <option value="">Bairro (opcional) — usa a média da cidade</option>
+                {neighborhoods.map((h) => (
+                  <option key={h.n} value={h.n}>{h.n} — R$ {h.p.toLocaleString('pt-BR')}/m²</option>
+                ))}
+              </select>
+            )}
           </div>
 
           {/* Cabeçalho: Simulação */}

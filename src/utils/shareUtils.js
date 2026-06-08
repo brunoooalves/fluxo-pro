@@ -65,6 +65,7 @@ function compactFipezap(fz) {
   };
   if (fz.neighborhood) result.nb = fz.neighborhood;
   if (fz.neighborhoodPrice) result.np = fz.neighborhoodPrice;
+  if (fz.neighborhoodVar) result.nv = fz.neighborhoodVar;
   if (fz.var12m) result.v12 = fz.var12m;
   if (fz.annualizedRate != null) result.ar = parseFloat(fz.annualizedRate.toFixed(2));
   if (fz.inccAnnualized != null) result.ir = parseFloat(fz.inccAnnualized.toFixed(2));
@@ -92,6 +93,7 @@ function expandFipezap(compact) {
   };
   if (compact.nb) result.neighborhood = compact.nb;
   if (compact.np) result.neighborhoodPrice = compact.np;
+  if (compact.nv) result.neighborhoodVar = compact.nv;
   if (compact.v12) result.var12m = compact.v12;
   if (compact.ar != null) result.annualizedRate = compact.ar;
   if (compact.ir != null) result.inccAnnualized = compact.ir;

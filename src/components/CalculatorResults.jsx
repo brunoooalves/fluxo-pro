@@ -1,7 +1,7 @@
 import React, { useState, useRef, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Calendar, TrendingUp, DollarSign, BarChart3, ArrowLeft, FileDown, Check, Building2, Minus, Plus, ChevronUp, Save, Trash2, Pin, Search, Share2, Info, X } from 'lucide-react';
-import { Breadcrumb, Button, Card } from './ui';
+import { Breadcrumb, Button, Card, Modal } from './ui';
 import jsPDF from 'jspdf';
 import ShareMenu from './ShareMenu';
 import MetricDetailModal from './MetricDetailModal';
@@ -30,6 +30,7 @@ export default function CalculatorResults() {
   const [filtroPerfilAberto, setFiltroPerfilAberto] = useState(false);
   // Modal de detalhes de cálculo dos índices (valorizacao | incc | ganhoReal)
   const [metricDetail, setMetricDetail] = useState(null);
+  const [showBairros, setShowBairros] = useState(false);
   // Feedback do botão "Salvar empreendimento" no modal de relatório
   const [imovelSalvo, setImovelSalvo] = useState(false);
   // Empreendimentos salvos no dispositivo — seletor no modal de relatório
@@ -1103,6 +1104,9 @@ export default function CalculatorResults() {
           { label: 'Ganho real sobre INCC:', value: `${fipezapAnalytics.realGain > 0 ? '+' : ''}${fipezapAnalytics.realGain.toFixed(1)}% a.a.` },
           { label: 'Valor atual do imóvel:', value: formatarMoeda(valorImovel) },
         ];
+        if (fipezapAnalytics.neighborhood && fipezapAnalytics.neighborhoodPrice != null) {
+          projData.push({ label: `Preço médio do bairro ${fipezapAnalytics.neighborhood}:`, value: `R$ ${Math.round(fipezapAnalytics.neighborhoodPrice).toLocaleString('pt-BR')}/m²` });
+        }
         if (fipezapAnalytics.projectedValueAtDelivery != null) {
           projData.push({ label: 'Valor projetado na entrega:', value: formatarMoeda(fipezapAnalytics.projectedValueAtDelivery), isGreen: true });
           projData.push({ label: 'Ganho de patrimônio:', value: `+${formatarMoeda(fipezapAnalytics.equityGain)}`, isGreen: true });
@@ -2148,7 +2152,11 @@ export default function CalculatorResults() {
 
             const fmtM2 = (v) => `R$ ${Math.round(v).toLocaleString('pt-BR')}`;
 
+            const cityBairros = getCityData(cityName, getLatestPeriod())?.h || [];
+            const selectedNb = fzMatch.neighborhood;
+
             return (
+              <>
               <Card variant="outlined" padding="md" className="ring-1 ring-surface-border bg-emerald-50/30 col-span-full">
                 {/* Header */}
                 <div className="flex items-center gap-3 mb-4">
@@ -2162,7 +2170,7 @@ export default function CalculatorResults() {
                 </div>
 
                 {/* Preços: seu imóvel × média da cidade */}
-                <div className="grid grid-cols-2 gap-3 mb-3">
+                <div className={`grid ${fzMatch.neighborhood && fzMatch.neighborhoodPrice != null ? 'grid-cols-2' : 'grid-cols-1'} gap-3 mb-3`}>
                   <div className="rounded-xl bg-white ring-1 ring-emerald-200 p-3">
                     <div className="flex items-start justify-between gap-2">
                       <p className="text-[11px] text-ink-faint">Seu imóvel</p>
@@ -2180,13 +2188,28 @@ export default function CalculatorResults() {
                       <p className="text-xs text-ink-faint mt-1.5">Informe a metragem para comparar</p>
                     )}
                   </div>
-                  <div className="rounded-xl bg-white ring-1 ring-surface-border p-3">
-                    <p className="text-[11px] text-ink-faint">Média de {cityName}</p>
-                    <p className="text-lg font-bold text-ink-base">
-                      {fmtM2(fzMatch.price)}<span className="text-xs font-normal text-ink-faint">/m²</span>
-                    </p>
-                  </div>
+                  {fzMatch.neighborhood && fzMatch.neighborhoodPrice != null && (
+                    <div className="rounded-xl bg-white ring-1 ring-emerald-200 p-3">
+                      <p className="text-[11px] text-ink-faint truncate">Bairro {fzMatch.neighborhood}</p>
+                      <p className="text-lg font-bold text-emerald-700">
+                        {fmtM2(fzMatch.neighborhoodPrice)}<span className="text-xs font-normal text-ink-faint">/m²</span>
+                      </p>
+                      {fzMatch.neighborhoodVar && (
+                        <p className="text-[10px] text-ink-faint">{fzMatch.neighborhoodVar} no mês</p>
+                      )}
+                    </div>
+                  )}
                 </div>
+
+                {cityBairros.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setShowBairros(true)}
+                    className="flex items-center gap-1.5 text-xs font-semibold text-brand-600 hover:text-brand-700 mb-3"
+                  >
+                    <BarChart3 size={14} /> Comparar todos os bairros ({cityBairros.length})
+                  </button>
+                )}
 
                 {/* Tese: Valorização − Correção INCC = Ganho real */}
                 <div className="flex items-stretch gap-2 mb-3">
@@ -2255,6 +2278,50 @@ export default function CalculatorResults() {
                   </div>
                 )}
               </Card>
+
+              <Modal
+                open={showBairros}
+                onClose={() => setShowBairros(false)}
+                title={`Bairros de ${cityName}`}
+                size="md"
+              >
+                <div className="flex gap-3 mb-4">
+                  {propertyPriceM2 != null && (
+                    <div className="flex-1 rounded-lg bg-emerald-50 ring-1 ring-emerald-200 p-2 text-center">
+                      <p className="text-[11px] text-ink-faint">Seu imóvel</p>
+                      <p className="font-bold text-emerald-700 text-sm">{fmtM2(propertyPriceM2)}/m²</p>
+                    </div>
+                  )}
+                  <div className="flex-1 rounded-lg bg-surface-muted p-2 text-center">
+                    <p className="text-[11px] text-ink-faint">Média de {cityName}</p>
+                    <p className="font-bold text-ink-base text-sm">{fmtM2(fzMatch.price)}/m²</p>
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  {[...cityBairros].sort((a, b) => b.p - a.p).map((h) => {
+                    const isSelected = h.n === selectedNb;
+                    const vsCity = fzMatch.price ? ((h.p - fzMatch.price) / fzMatch.price) * 100 : 0;
+                    return (
+                      <div
+                        key={h.n}
+                        className={`flex items-center justify-between gap-2 rounded-lg px-3 py-2 ${isSelected ? 'bg-brand-50 ring-1 ring-brand-300' : 'hover:bg-surface-muted'}`}
+                      >
+                        <span className={`text-sm truncate ${isSelected ? 'font-semibold text-brand-700' : 'text-ink-base'}`}>{h.n}</span>
+                        <div className="flex items-center gap-3 flex-shrink-0">
+                          <span className="text-[11px] text-ink-faint w-12 text-right">{h.v}</span>
+                          <span className="text-sm font-bold text-ink-base w-24 text-right">{fmtM2(h.p)}/m²</span>
+                          <span className={`text-[11px] w-12 text-right ${vsCity >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
+                            {vsCity >= 0 ? '+' : ''}{vsCity.toFixed(0)}%
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                <p className="text-[11px] text-ink-faint mt-3">Variação no mês · preço médio por m² · % vs. média da cidade.</p>
+              </Modal>
+              </>
             );
           })()}
         </div>

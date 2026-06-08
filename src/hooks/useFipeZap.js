@@ -4,8 +4,8 @@ import { FIPEZAP_CITIES, getCityData, getLatestPeriod } from '../data/fipezapDat
 import { computeCityAnalytics } from '../data/fipezapAnalytics';
 import { getInccAnnualized } from '../data/inccData';
 
-export function useFipeZap(cidade, estado, dataEntrega, valorImovel) {
-  const [selectedNeighborhood, setSelectedNeighborhood] = useState('');
+export function useFipeZap(cidade, estado, dataEntrega, valorImovel, initialNeighborhood = '') {
+  const [selectedNeighborhood, setSelectedNeighborhood] = useState(initialNeighborhood);
 
   const match = useMemo(() => {
     const cityName = matchFipezapCity(cidade, estado, FIPEZAP_CITIES);
