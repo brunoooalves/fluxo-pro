@@ -1,6 +1,6 @@
 import React, { useState, useRef, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Calendar, TrendingUp, DollarSign, BarChart3, ArrowLeft, FileDown, Check, Building2, Minus, Plus, ChevronUp, Save, Trash2, Pin, Search, Share2, Info, X } from 'lucide-react';
+import { Calendar, TrendingUp, DollarSign, BarChart3, ArrowLeft, FileDown, Check, Building2, Minus, Plus, ChevronUp, Save, Trash2, Pin, Search, Share2, Info, X, Copy } from 'lucide-react';
 import { Breadcrumb, Button, Card, Modal } from './ui';
 import jsPDF from 'jspdf';
 import ShareMenu from './ShareMenu';
@@ -31,6 +31,41 @@ export default function CalculatorResults() {
   // Modal de detalhes de cálculo dos índices (valorizacao | incc | ganhoReal)
   const [metricDetail, setMetricDetail] = useState(null);
   const [showBairros, setShowBairros] = useState(false);
+  const [copiedIdx, setCopiedIdx] = useState(null);
+  const [incluirAnaliseMercado, setIncluirAnaliseMercado] = useState(true);
+
+  // Monta o texto do cenário para o corretor copiar (ex.: colar no WhatsApp)
+  const buildScenarioText = (opcao, perc) => {
+    const sep = '━━━━━━━━━━━━━━━━━━━━';
+    const imv = reportInfo?.imovel;
+
+    const head = [];
+    if (imv?.nome) head.push(`*${imv.nome}*`);
+    const local = [imv?.cidade, imv?.estado].filter(Boolean).join(' - ');
+    if (local) head.push(`📍 ${local}`);
+    head.push(`💰 Valor do imóvel: ${formatarMoeda(parseFloat(calculatorInputs?.valorImovel) || 0)}`);
+
+    const plano = [`*Plano: ${perc}% de entrada*`, `• Entrada: ${formatarMoeda(opcao.entrada)}`];
+    if (opcao.mensais?.total > 0) {
+      plano.push(`• Mensais (${opcao.mensais.quantidade}x): ${formatarMoeda(opcao.mensais.valorParcela)}`);
+    }
+    if (opcao.intercaladas?.total > 0) {
+      const tipo = opcao.intercaladas.tipo.charAt(0).toUpperCase() + opcao.intercaladas.tipo.slice(1);
+      plano.push(`• ${tipo} (${opcao.intercaladas.quantidade}x): ${formatarMoeda(opcao.intercaladas.valorParcela)}`);
+    }
+    plano.push(`• Saldo pós-chaves: ${formatarMoeda(opcao.financiamento)}`);
+
+    return [sep, ...head, sep, ...plano, sep].join('\n');
+  };
+
+  const copyScenario = (opcao, perc, index) => {
+    const text = buildScenarioText(opcao, perc);
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(text)
+        .then(() => { setCopiedIdx(index); setTimeout(() => setCopiedIdx(null), 2000); })
+        .catch(() => {});
+    }
+  };
   // Feedback do botão "Salvar empreendimento" no modal de relatório
   const [imovelSalvo, setImovelSalvo] = useState(false);
   // Empreendimentos salvos no dispositivo — seletor no modal de relatório
@@ -1095,6 +1130,7 @@ export default function CalculatorResults() {
       const fzAnalytics = calculatorInputs?.fipezapMatch;
       const fipezapAnalytics = (fzAnalytics && fzAnalytics.annualizedRate != null) ? fzAnalytics : null;
 
+      if (incluirAnaliseMercado) {
       yPosition = drawSectionHeader('PROJEÇÃO DE VALORIZAÇÃO (FIPEZAP)', yPosition);
 
       if (fipezapAnalytics) {
@@ -1150,6 +1186,7 @@ export default function CalculatorResults() {
         });
         yPosition += noDataHeight + 4;
       }
+      } // fim incluirAnaliseMercado
 
       // ============ PRINCIPAIS ESTRATÉGIAS - 3 CARDS ============
       yPosition = drawSectionHeader('PRINCIPAIS ESTRATÉGIAS', yPosition);
@@ -1551,10 +1588,21 @@ export default function CalculatorResults() {
         } ${isSelectedForPdf ? '' : 'opacity-60'}`}
       >
         <div className="p-5">
-          <div className="mb-4 pb-3 border-b border-surface-border">
+          <div className="mb-4 pb-3 border-b border-surface-border flex items-center justify-between gap-2">
             <span className="text-xs font-bold text-ink-muted uppercase tracking-wide">
               {compact ? `${perc}% de entrada` : positionLabel(position)}
             </span>
+            <button
+              type="button"
+              onClick={() => copyScenario(opcao, perc, index)}
+              title="Copiar dados do cenário"
+              aria-label="Copiar dados do cenário"
+              className="flex items-center gap-1 text-xs font-medium text-ink-muted hover:text-brand-600 transition-colors flex-shrink-0"
+            >
+              {copiedIdx === index
+                ? <><Check size={14} className="text-emerald-500" /> Copiado</>
+                : <><Copy size={14} /> Copiar</>}
+            </button>
           </div>
 
           <div className="space-y-3">
@@ -2138,7 +2186,6 @@ export default function CalculatorResults() {
             const valorImovelNum = parseFloat(calculatorInputs.valorImovel);
 
             const cityAnnualRate = fzMatch.annualizedRate;
-            const inccRate = fzMatch.inccAnnualized;
             const realGain = fzMatch.realGain;
 
             // Fonte única: projeção já calculada (mesma usada no relatório compartilhado)
@@ -2154,10 +2201,11 @@ export default function CalculatorResults() {
 
             const cityBairros = getCityData(cityName, getLatestPeriod())?.h || [];
             const selectedNb = fzMatch.neighborhood;
+            const maxBairroPrice = Math.max(...cityBairros.map((b) => b.p), 1);
 
             return (
               <>
-              <Card variant="outlined" padding="md" className="ring-1 ring-surface-border bg-emerald-50/30 col-span-full">
+              <Card variant="outlined" padding="md" className="col-span-full">
                 {/* Header */}
                 <div className="flex items-center gap-3 mb-4">
                   <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center flex-shrink-0">
@@ -2170,113 +2218,125 @@ export default function CalculatorResults() {
                 </div>
 
                 {/* Preços: seu imóvel × média da cidade */}
-                <div className={`grid ${fzMatch.neighborhood && fzMatch.neighborhoodPrice != null ? 'grid-cols-2' : 'grid-cols-1'} gap-3 mb-3`}>
-                  <div className="rounded-xl bg-white ring-1 ring-emerald-200 p-3">
-                    <div className="flex items-start justify-between gap-2">
-                      <p className="text-[11px] text-ink-faint">Seu imóvel</p>
-                      {reportInfo.imovel.metragem && parseFloat(reportInfo.imovel.metragem) > 0 && (
-                        <span className="flex-shrink-0 text-[10px] font-semibold text-black ring-1 ring-black rounded-full px-2 py-0.5">
-                          {reportInfo.imovel.metragem} m²
-                        </span>
+                <div className="rounded-xl bg-white ring-1 ring-surface-border p-4 mb-3">
+                  <p className="text-[11px] font-semibold text-ink-faint uppercase tracking-wide mb-1">Preço médio por m²</p>
+
+                  <div className="divide-y divide-surface-border">
+                    {/* Seu imóvel */}
+                    <div className="flex items-center justify-between gap-3 py-2.5">
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-ink-base">Seu imóvel</p>
+                        {reportInfo.imovel.metragem && parseFloat(reportInfo.imovel.metragem) > 0 && (
+                          <p className="text-[11px] text-ink-faint">{reportInfo.imovel.metragem} m²</p>
+                        )}
+                      </div>
+                      {propertyPriceM2 != null ? (
+                        <p className="text-lg font-bold text-emerald-700 flex-shrink-0">
+                          {fmtM2(propertyPriceM2)}<span className="text-xs font-normal text-ink-faint">/m²</span>
+                        </p>
+                      ) : (
+                        <p className="text-xs text-ink-faint flex-shrink-0">Informe a metragem</p>
                       )}
                     </div>
-                    {propertyPriceM2 != null ? (
-                      <p className="text-lg font-bold text-emerald-700">
-                        {fmtM2(propertyPriceM2)}<span className="text-xs font-normal text-ink-faint">/m²</span>
-                      </p>
-                    ) : (
-                      <p className="text-xs text-ink-faint mt-1.5">Informe a metragem para comparar</p>
+
+                    {/* Bairro */}
+                    {fzMatch.neighborhood && fzMatch.neighborhoodPrice != null && (
+                      <div className="flex items-center justify-between gap-3 py-2.5">
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium text-ink-base truncate">Bairro {fzMatch.neighborhood}</p>
+                          {fzMatch.neighborhoodVar && (
+                            <p className="text-[11px] text-ink-faint">{fzMatch.neighborhoodVar} em 12 meses</p>
+                          )}
+                        </div>
+                        <p className="text-lg font-bold text-ink-base flex-shrink-0">
+                          {fmtM2(fzMatch.neighborhoodPrice)}<span className="text-xs font-normal text-ink-faint">/m²</span>
+                        </p>
+                      </div>
                     )}
                   </div>
-                  {fzMatch.neighborhood && fzMatch.neighborhoodPrice != null && (
-                    <div className="rounded-xl bg-white ring-1 ring-emerald-200 p-3">
-                      <p className="text-[11px] text-ink-faint truncate">Bairro {fzMatch.neighborhood}</p>
-                      <p className="text-lg font-bold text-emerald-700">
-                        {fmtM2(fzMatch.neighborhoodPrice)}<span className="text-xs font-normal text-ink-faint">/m²</span>
-                      </p>
-                      {fzMatch.neighborhoodVar && (
-                        <p className="text-[10px] text-ink-faint">{fzMatch.neighborhoodVar} no mês</p>
-                      )}
-                    </div>
+
+                  {cityBairros.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setShowBairros(true)}
+                      className="flex items-center justify-center gap-1.5 text-xs font-semibold text-brand-600 hover:text-brand-700 mt-2 pt-3 border-t border-surface-border w-full"
+                    >
+                      <BarChart3 size={14} /> Comparar todos os bairros ({cityBairros.length})
+                    </button>
                   )}
                 </div>
 
-                {cityBairros.length > 0 && (
-                  <button
-                    type="button"
-                    onClick={() => setShowBairros(true)}
-                    className="flex items-center gap-1.5 text-xs font-semibold text-brand-600 hover:text-brand-700 mb-3"
-                  >
-                    <BarChart3 size={14} /> Comparar todos os bairros ({cityBairros.length})
-                  </button>
-                )}
-
-                {/* Tese: Valorização − Correção INCC = Ganho real */}
-                <div className="flex items-stretch gap-2 mb-3">
-                  <div className="flex-1 rounded-xl bg-white ring-1 ring-emerald-200 p-3 text-center">
-                    <button
-                      type="button"
-                      onClick={() => setMetricDetail('valorizacao')}
-                      className="flex items-center justify-center gap-1 w-full text-[11px] text-ink-faint mb-0.5 hover:text-ink-base transition-colors"
-                    >
-                      Valorização <Info size={11} />
-                    </button>
-                    <p className="text-xl font-bold text-emerald-700">{cityAnnualRate != null ? `+${cityAnnualRate.toFixed(1)}%` : '—'}</p>
-                    <p className="text-[10px] text-ink-faint">ao ano</p>
-                  </div>
-                  <div className="flex-1 rounded-xl bg-white ring-1 ring-amber-200 p-3 text-center">
-                    <button
-                      type="button"
-                      onClick={() => setMetricDetail('incc')}
-                      className="flex items-center justify-center gap-1 w-full text-[11px] text-ink-faint mb-0.5 hover:text-ink-base transition-colors"
-                    >
-                      Correção INCC <Info size={11} />
-                    </button>
-                    <p className="text-xl font-bold text-amber-700">{inccRate != null ? `+${inccRate.toFixed(1)}%` : '—'}</p>
-                    <p className="text-[10px] text-ink-faint">ao ano</p>
-                  </div>
-                  <div className="flex-1 rounded-xl bg-blue-50 ring-2 ring-blue-200 p-3 text-center">
-                    <button
-                      type="button"
-                      onClick={() => setMetricDetail('ganhoReal')}
-                      className="flex items-center justify-center gap-1 w-full text-[11px] text-ink-muted mb-0.5 hover:text-ink-base transition-colors"
-                    >
-                      Ganho real <Info size={11} />
-                    </button>
-                    <p className={`text-xl font-bold ${realGain != null && realGain < 0 ? 'text-red-600' : 'text-blue-700'}`}>
-                      {realGain != null ? `${realGain >= 0 ? '+' : ''}${realGain.toFixed(1)}%` : '—'}
-                    </p>
-                    <p className="text-[10px] text-ink-faint">ao ano</p>
-                  </div>
-                </div>
-
-                {/* Projeção de patrimônio — linha do tempo */}
-                {projectedValue != null && (
-                  <div className="rounded-xl bg-white ring-2 ring-emerald-200 p-4">
-                    <p className="text-sm font-semibold text-ink-base mb-3">Projeção de valorização</p>
-                    <div className="flex items-center gap-3">
-                      <div className="text-center flex-shrink-0">
-                        <p className="text-[11px] text-ink-faint">hoje</p>
-                        <p className="text-base font-bold text-ink-base">{formatarMoeda(valorImovelNum)}</p>
-                      </div>
-                      <div className="flex-1 flex flex-col items-center min-w-0">
-                        <span className="text-[10px] text-ink-faint mb-0.5">{mesesAteEntrega} meses</span>
-                        <div className="w-full h-0.5 bg-emerald-300 relative">
-                          <span className="absolute -right-1 -top-1.5 text-emerald-500 text-[10px]">▶</span>
-                        </div>
-                      </div>
-                      <div className="text-center flex-shrink-0">
-                        <p className="text-[11px] text-emerald-600">na entrega</p>
-                        <p className="text-lg sm:text-xl font-extrabold text-emerald-700">{formatarMoeda(projectedValue)}</p>
-                      </div>
+                {/* Valorização + projeção (valorização integrada no header) */}
+                {cityAnnualRate != null && (
+                  <div className="rounded-xl bg-white ring-1 ring-surface-border p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <p className="text-sm font-semibold text-ink-base">Projeção de valorização</p>
+                      <button
+                        type="button"
+                        onClick={() => setMetricDetail('valorizacao')}
+                        className="flex items-center gap-1 text-sm font-bold text-emerald-700 hover:text-emerald-800 transition-colors"
+                      >
+                        +{cityAnnualRate.toFixed(1)}% a.a. <Info size={12} className="text-ink-faint" />
+                      </button>
                     </div>
-                    {equityGain != null && equityGain > 0 && (
-                      <div className="mt-3 text-center bg-emerald-50 rounded-lg py-1.5">
-                        <span className="text-sm font-bold text-emerald-700">+ {formatarMoeda(equityGain)}</span>
-                      </div>
+                    {projectedValue != null && (
+                      <>
+                        <div className="flex items-center gap-3">
+                          <div className="text-center flex-shrink-0">
+                            <p className="text-[11px] text-ink-faint">hoje</p>
+                            <p className="text-base font-bold text-ink-base">{formatarMoeda(valorImovelNum)}</p>
+                          </div>
+                          <div className="flex-1 flex flex-col items-center min-w-0">
+                            <span className="text-[10px] text-ink-faint mb-0.5">{mesesAteEntrega} meses</span>
+                            <div className="w-full h-0.5 bg-emerald-300 relative">
+                              <span className="absolute -right-1 -top-1.5 text-emerald-500 text-[10px]">▶</span>
+                            </div>
+                          </div>
+                          <div className="text-center flex-shrink-0">
+                            <p className="text-[11px] text-emerald-600">na entrega</p>
+                            <p className="text-lg sm:text-xl font-extrabold text-emerald-700">{formatarMoeda(projectedValue)}</p>
+                          </div>
+                        </div>
+                        {equityGain != null && equityGain > 0 && (
+                          <div className="mt-3 text-center bg-emerald-50 rounded-lg py-1.5">
+                            <span className="text-sm font-bold text-emerald-700">+ {formatarMoeda(equityGain)}</span>
+                          </div>
+                        )}
+                      </>
+                    )}
+
+                    {/* Ganho real — legenda que qualifica a projeção (clica = detalhe INCC) */}
+                    {realGain != null && (
+                      <button
+                        type="button"
+                        onClick={() => setMetricDetail('incc')}
+                        className="mt-3 w-full flex items-center justify-center gap-1 text-[11px] text-ink-muted hover:text-ink-base transition-colors"
+                      >
+                        Ganho real após INCC:
+                        <span className={`font-semibold ${realGain < 0 ? 'text-red-600' : 'text-blue-700'}`}>
+                          {realGain >= 0 ? '+' : ''}{realGain.toFixed(1)}% a.a.
+                        </span>
+                        <Info size={11} className="text-ink-faint" />
+                      </button>
                     )}
                   </div>
                 )}
+
+                {/* Rodapé — incluir a análise no relatório */}
+                <div className="mt-3 pt-3 border-t border-surface-border flex items-center justify-between gap-2">
+                  <span className="text-sm text-ink-muted">Incluir esta análise no relatório</span>
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={incluirAnaliseMercado}
+                    onClick={() => setIncluirAnaliseMercado((v) => !v)}
+                    className="flex items-center"
+                  >
+                    <div className={`relative w-10 h-5 rounded-full transition-colors duration-200 ${incluirAnaliseMercado ? 'bg-brand-500' : 'bg-gray-300'}`}>
+                      <div className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform duration-200 ${incluirAnaliseMercado ? 'translate-x-5' : 'translate-x-0'}`} />
+                    </div>
+                  </button>
+                </div>
               </Card>
 
               <Modal
@@ -2301,25 +2361,36 @@ export default function CalculatorResults() {
                 <div className="space-y-1">
                   {[...cityBairros].sort((a, b) => b.p - a.p).map((h) => {
                     const isSelected = h.n === selectedNb;
-                    const vsCity = fzMatch.price ? ((h.p - fzMatch.price) / fzMatch.price) * 100 : 0;
+                    const vsProp = propertyPriceM2 != null ? ((h.p - propertyPriceM2) / propertyPriceM2) * 100 : null;
                     return (
                       <div
                         key={h.n}
-                        className={`flex items-center justify-between gap-2 rounded-lg px-3 py-2 ${isSelected ? 'bg-brand-50 ring-1 ring-brand-300' : 'hover:bg-surface-muted'}`}
+                        className={`rounded-lg px-3 py-2 ${isSelected ? 'bg-brand-50 ring-1 ring-brand-300' : 'hover:bg-surface-muted'}`}
                       >
-                        <span className={`text-sm truncate ${isSelected ? 'font-semibold text-brand-700' : 'text-ink-base'}`}>{h.n}</span>
-                        <div className="flex items-center gap-3 flex-shrink-0">
-                          <span className="text-[11px] text-ink-faint w-12 text-right">{h.v}</span>
-                          <span className="text-sm font-bold text-ink-base w-24 text-right">{fmtM2(h.p)}/m²</span>
-                          <span className={`text-[11px] w-12 text-right ${vsCity >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
-                            {vsCity >= 0 ? '+' : ''}{vsCity.toFixed(0)}%
-                          </span>
+                        <div className="flex items-center justify-between gap-2">
+                          <span className={`text-sm truncate ${isSelected ? 'font-semibold text-brand-700' : 'text-ink-base'}`}>{h.n}</span>
+                          <div className="flex items-center gap-3 flex-shrink-0">
+                            {vsProp != null && (
+                              <span className={`text-[11px] font-medium ${vsProp >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
+                                {vsProp >= 0 ? '+' : ''}{vsProp.toFixed(0)}%
+                              </span>
+                            )}
+                            <span className="text-sm font-bold text-ink-base w-24 text-right">{fmtM2(h.p)}/m²</span>
+                          </div>
+                        </div>
+                        <div className="mt-1.5 h-1.5 rounded-full bg-surface-muted overflow-hidden">
+                          <div
+                            className={`h-full rounded-full ${isSelected ? 'bg-brand-500' : 'bg-emerald-400'}`}
+                            style={{ width: `${Math.max((h.p / maxBairroPrice) * 100, 3)}%` }}
+                          />
                         </div>
                       </div>
                     );
                   })}
                 </div>
-                <p className="text-[11px] text-ink-faint mt-3">Variação no mês · preço médio por m² · % vs. média da cidade.</p>
+                <p className="text-[11px] text-ink-faint mt-3">
+                  % = quanto o bairro é mais caro que o seu imóvel · barra: preço relativo ao bairro mais caro.
+                </p>
               </Modal>
               </>
             );
@@ -2361,7 +2432,7 @@ export default function CalculatorResults() {
           </button>
           <ShareMenu
             customOpcoes={customOpcoes}
-            calculatorInputs={calculatorInputs}
+            calculatorInputs={incluirAnaliseMercado ? calculatorInputs : { ...calculatorInputs, fipezapMatch: null }}
             resultados={resultados}
             reportInfo={reportInfo}
             selectedForPdf={selectedForPdf}

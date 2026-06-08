@@ -130,7 +130,7 @@ export default function MarketAnalysisSection({
                         <p className="text-lg font-bold text-emerald-700">
                           R$ {Math.round(fipezap.neighborhoodPrice).toLocaleString('pt-BR')}<span className="text-xs font-normal text-gray-400">/m²</span>
                         </p>
-                        {fipezap.neighborhoodVar && <p className="text-xs text-gray-400">{fipezap.neighborhoodVar} no mês</p>}
+                        {fipezap.neighborhoodVar && <p className="text-xs text-gray-400">{fipezap.neighborhoodVar} em 12 meses</p>}
                       </div>
                     )}
                     <div className="bg-white rounded-lg p-3 text-center ring-1 ring-gray-200">
