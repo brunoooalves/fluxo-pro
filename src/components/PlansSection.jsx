@@ -47,7 +47,7 @@ function formatPrice(cents, interval) {
   return { value: `R$ ${value}`, suffix: interval === 'year' ? '/ano' : '/mês' };
 }
 
-export default function PlansSection({ onSubscribe }) {
+export default function PlansSection({ onSubscribe, busyPlanId = null }) {
   const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(true);
   const [usingFallback, setUsingFallback] = useState(false);
@@ -111,7 +111,8 @@ export default function PlansSection({ onSubscribe }) {
                 <Button
                   variant={highlighted ? 'primary' : 'secondary'}
                   fullWidth
-                  disabled={!onSubscribe}
+                  disabled={!onSubscribe || (busyPlanId != null && busyPlanId !== plan.id)}
+                  loading={busyPlanId === plan.id}
                   title={onSubscribe ? undefined : 'Checkout em breve'}
                   onClick={() => onSubscribe?.(plan)}
                 >

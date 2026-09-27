@@ -34,7 +34,8 @@ export default function SignUp() {
     }
     // Se a confirmação de e-mail estiver ativa, não há sessão ainda.
     if (data?.session) {
-      navigate('/', { replace: true });
+      // Conta criada e logada → escolher plano e pagar.
+      navigate('/assinar', { replace: true });
     } else {
       setCheckEmail(true);
     }

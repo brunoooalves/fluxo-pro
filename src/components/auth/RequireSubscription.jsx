@@ -1,18 +1,20 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 import { useSubscription } from '../../hooks/useSubscription';
 
 /**
  * Exige assinatura ativa (trial/active). Sem assinatura → manda para /assinar.
  *
- * AINDA NÃO está aplicado nas rotas (ver App.js): o gating por assinatura só
- * deve ser ligado depois que o checkout do gateway estiver funcionando, senão
- * ninguém consegue acessar. Para ativar, envolva a rota:
- *   <RequireAuth><RequireSubscription><MortgageCalculator/></RequireSubscription></RequireAuth>
+ * No modo aberto (Supabase não configurado, ex.: site demo) libera tudo,
+ * igual ao RequireAuth.
  */
 export default function RequireSubscription({ children }) {
+  const { isConfigured } = useAuth();
   const { isActive, loading } = useSubscription();
+
+  if (!isConfigured) return children;
 
   if (loading) {
     return (

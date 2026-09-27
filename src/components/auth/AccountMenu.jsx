@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, User } from 'lucide-react';
+import { LogOut, User, FileText } from 'lucide-react';
 import Button from '../ui/Button';
 import { useAuth } from '../../context/AuthContext';
 
@@ -30,6 +30,9 @@ export default function AccountMenu() {
         </span>
         <span className="max-w-[180px] truncate">{user.email}</span>
       </span>
+      <Button variant="ghost" size="sm" icon={<FileText size={14} />} onClick={() => navigate('/calculadora/notas')}>
+        Notas fiscais
+      </Button>
       <Button variant="secondary" size="sm" icon={<LogOut size={14} />} onClick={handleSignOut}>
         Sair
       </Button>

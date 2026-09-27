@@ -189,7 +189,7 @@ export default function Landing() {
         </div>
         <PlansSection onSubscribe={() => openAuth('signup')} />
         <p className="text-center text-xs text-ink-faint mt-6">
-          Para assinar, crie sua conta. O checkout será habilitado em breve.
+          Crie sua conta e pague com segurança pelo Mercado Pago.
         </p>
       </section>
 

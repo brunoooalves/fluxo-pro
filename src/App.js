@@ -9,10 +9,14 @@ import SharedReport from './components/SharedReport';
 import Login from './components/auth/Login';
 import SignUp from './components/auth/SignUp';
 import Assinar from './components/Assinar';
+import AssinarRetorno from './components/AssinarRetorno';
+import MinhasNotas from './components/MinhasNotas';
 import Landing from './components/landing/Landing';
 import RequireAuth from './components/auth/RequireAuth';
+import RequireSubscription from './components/auth/RequireSubscription';
 import AccountMenu from './components/auth/AccountMenu';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { isSupabaseConfigured } from './lib/supabaseClient';
 
 /**
  * App.js - Fluxo Pro
@@ -21,8 +25,8 @@ import { AuthProvider, useAuth } from './context/AuthContext';
  * A calculadora fica em /calculadora e exige login (RequireAuth).
  * /relatorio e /assinar são públicas.
  *
- * Gating por assinatura: ainda NÃO aplicado. Quando o checkout do gateway
- * existir, envolver as rotas da calculadora também com <RequireSubscription>.
+ * Gating por assinatura: as rotas da calculadora exigem login (RequireAuth) e
+ * assinatura ativa via Mercado Pago (RequireSubscription → /assinar).
  * Enquanto o Supabase não estiver configurado (sem env), o app fica aberto.
  */
 
@@ -45,17 +49,19 @@ function CalculatorLayout({ children }) {
 function AppContent() {
   return (
     <Routes>
-      {/* Públicas */}
-      <Route path="/" element={<Landing />} />
+      {/* Públicas — em modo aberto (sem Supabase) a raiz vai direto à calculadora */}
+      <Route path="/" element={isSupabaseConfigured ? <Landing /> : <Navigate to="/calculadora" replace />} />
       <Route path="/login" element={<Login />} />
       <Route path="/cadastro" element={<SignUp />} />
       <Route path="/relatorio" element={<SharedReport />} />
       <Route path="/assinar" element={<Assinar />} />
+      <Route path="/assinar/retorno" element={<AssinarRetorno />} />
 
-      {/* Calculadora (exige login) */}
-      <Route path="/calculadora" element={<RequireAuth><CalculatorLayout><MortgageCalculator /></CalculatorLayout></RequireAuth>} />
-      <Route path="/calculadora/resultados" element={<RequireAuth><CalculatorLayout><CalculatorResults /></CalculatorLayout></RequireAuth>} />
-      <Route path="/calculadora/resultados/incc" element={<RequireAuth><CalculatorLayout><INCCResults /></CalculatorLayout></RequireAuth>} />
+      {/* Calculadora (exige login + assinatura ativa) */}
+      <Route path="/calculadora" element={<RequireAuth><RequireSubscription><CalculatorLayout><MortgageCalculator /></CalculatorLayout></RequireSubscription></RequireAuth>} />
+      <Route path="/calculadora/resultados" element={<RequireAuth><RequireSubscription><CalculatorLayout><CalculatorResults /></CalculatorLayout></RequireSubscription></RequireAuth>} />
+      <Route path="/calculadora/resultados/incc" element={<RequireAuth><RequireSubscription><CalculatorLayout><INCCResults /></CalculatorLayout></RequireSubscription></RequireAuth>} />
+      <Route path="/calculadora/notas" element={<RequireAuth><RequireSubscription><CalculatorLayout><MinhasNotas /></CalculatorLayout></RequireSubscription></RequireAuth>} />
 
       {/* Qualquer outra rota volta para a landing */}
       <Route path="*" element={<Navigate to="/" replace />} />

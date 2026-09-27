@@ -52,7 +52,8 @@ export default function LoginModal({ open, onClose, initialMode = 'login', redir
       const { data, error: err } = await signUp(email, password, fullName);
       setLoading(false);
       if (err) return setError(traduzErro(err.message));
-      if (data?.session) { onClose?.(); navigate(redirectTo, { replace: true }); }
+      // Conta nova → escolher plano e pagar (o login normal segue o redirectTo).
+      if (data?.session) { onClose?.(); navigate('/assinar', { replace: true }); }
       else setCheckEmail(true);
     } else {
       const { error: err } = await signIn(email, password);
