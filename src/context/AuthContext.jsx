@@ -42,11 +42,14 @@ export function AuthProvider({ children }) {
     };
   }, []);
 
+  // O projeto Supabase é compartilhado com o SPI Pocket: o link de confirmação volta para a
+  // origem onde o cadastro foi feito, sem depender do Site URL global. A origem precisa estar
+  // na allowlist de Redirect URLs do Supabase.
   const signUp = useCallback((email, password, fullName) =>
     supabase.auth.signUp({
       email,
       password,
-      options: { data: { full_name: fullName } },
+      options: { data: { full_name: fullName }, emailRedirectTo: window.location.origin },
     }), []);
 
   const signIn = useCallback((email, password) =>
